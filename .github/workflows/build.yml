@@ -87,7 +87,7 @@ jobs:
     - name: Build APK
       run: |
         cd V2rayNG
-        chmod 777 *
+        chmod 755 gradlew
         sed -i 's/org.gradle.jvmargs=-Xmx2048m -XX:MaxPermSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8/org.gradle.jvmargs=-Xmx2048m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8/' gradle.properties
         ./gradlew assembleRelease
 
