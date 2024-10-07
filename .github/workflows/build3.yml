@@ -74,7 +74,6 @@ jobs:
       run: |
         cd AndroidLibXrayLite
         sed -i "s/v2core.Version())/v2core.Version() + \"${{ env.XRAY_SHA }}\")/" libv2ray_main.go
-        go get google.golang.org/genproto@v0.0.0-20230110181048-76db0878b65f
         go get github.com/xtls/xray-core@${{ inputs.XRAY_VERSION }}
         gomobile init
         go clean -modcache
