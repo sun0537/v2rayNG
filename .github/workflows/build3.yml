@@ -53,15 +53,7 @@ jobs:
     - name: Get Go version
       run: |
         echo "GO_VERSION=$(curl -s https://raw.githubusercontent.com/actions/go-versions/main/versions-manifest.json | grep -oE '\"version\": \"[0-9]{1}.[0-9]{1,}(.[0-9]{1,})?\"' | head -1 | cut -d':' -f2 | sed 's/ //g; s/\"//g')" >> $GITHUB_ENV
-
-    - name: Cache Go modules
-      uses: actions/cache@v2
-      with:
-        path: ~/go/pkg/mod
-        key: ${{ runner.os }}-go-${{ hashFiles('**/go.mod') }}
-        restore-keys: |
-          ${{ runner.os }}-go-
-
+        
     - name: Setup Go
       uses: actions/setup-go@v5
       with:
