@@ -1,0 +1,120 @@
+# build.yml forked from github.com/Fangliding/v2rayNG
+# thanks @Fangliding @nagi_ly
+
+name: Build APK
+
+on:
+  workflow_dispatch:
+    inputs:
+      XRAY_VERSION:
+        description: "Select Xray-core's version: main (latest commit) or latest (release version)."
+        required: true
+        type: choice
+        default: 'main'
+        options: 
+        - main
+        - latest
+
+env:
+  ALIAS: ${{ secrets.ALIAS }}
+  KEYPASSWORD: ${{ secrets.KEYPASSWORD }}
+  KEYSTOREPASSWORD: ${{ secrets.KEYSTOREPASSWORD }}
+  SIGNINGKEYBASE64: ${{ secrets.SIGNINGKEYBASE64 }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout v2rayNG repository
+      uses: actions/checkout@v4
+      with:
+        repository: '2dust/v2rayNG'
+
+    - name: Checkout AndroidLibXrayLite repository
+      uses: actions/checkout@v4
+      with:
+        repository: '2dust/AndroidLibXrayLite'
+        path: 'AndroidLibXrayLite'
+
+    - name: Checkout Xray-core repository
+      if: ${{ inputs.XRAY_VERSION == 'main' }}
+      uses: actions/checkout@v4
+      with:
+        repository: 'xtls/xray-core'
+        path: 'xray-core'
+
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    - name: Get Go version
+      run: |
+        echo "GO_VERSION=$(curl -s https://raw.githubusercontent.com/actions/go-versions/main/versions-manifest.json | grep -oE '\"version\": \"[0-9]{1}.[0-9]{1,}(.[0-9]{1,})?\"' | head -1 | cut -d':' -f2 | sed 's/ //g; s/\"//g')" >> $GITHUB_ENV
+
+    - name: Cache Go modules
+      uses: actions/cache@v2
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.mod') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+
+    - name: Setup Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.20'  # 修改为具体的稳定版本
+        cache: false
+
+    - name: Install gomobile
+      run: |
+        go install golang.org/x/mobile/cmd/gomobile@latest
+        echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+
+    - name: Setup Android
+      uses: android-actions/setup-android@v3
+
+    - name: Get xray short sha
+      if: ${{ inputs.XRAY_VERSION == 'main' }}
+      run: | 
+        cd xray-core
+        echo "XRAY_SHA=@$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+
+    - name: Build dependencies
+      run: |
+        cd AndroidLibXrayLite
+        sed -i "s/v2core.Version())/v2core.Version() + \"${{ env.XRAY_SHA }}\")/" libv2ray_main.go
+        go get github.com/xtls/xray-core@${{ inputs.XRAY_VERSION }}
+        gomobile init
+        go mod tidy -v
+        gomobile bind -v -androidapi 21 -ldflags='-s -w' ./
+        cp libv2ray.aar ../V2rayNG/app/libs/
+
+    - name: Build APK
+      run: |
+        cd V2rayNG
+        chmod 755 gradlew
+        sed -i 's/org.gradle.jvmargs=-Xmx2048m -XX:MaxPermSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8/org.gradle.jvmargs=-Xmx2048m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8/' gradle.properties
+        ./gradlew assembleRelease
+
+    - name: List APK files
+      run: |
+        find V2rayNG/app/build/outputs/apk/ -type f -exec du -h {} \;
+
+    - name: Sign APK files
+      uses: ilharp/sign-android-release@v1
+      with:
+        releaseDir: V2rayNG/app/build/outputs/apk/release/
+        keyAlias: ${{ env.ALIAS }}
+        keyPassword: ${{ env.KEYPASSWORD }}
+        keyStorePassword: ${{ env.KEYSTOREPASSWORD }}
+        signingKey: ${{ env.SIGNINGKEYBASE64 }}
+        buildToolsVersion: 33.0.2
+
+    - name: Upload APK files
+      uses: actions/upload-artifact@v4
+      with:
+        name: v2rayNG_arm64-v8a-signed
+        path: V2rayNG/app/build/outputs/apk/release/v2rayNG_*_arm64-v8a-signed.apk
