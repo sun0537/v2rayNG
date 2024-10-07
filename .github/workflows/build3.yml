@@ -41,7 +41,7 @@ jobs:
       if: ${{ inputs.XRAY_VERSION == 'main' }}
       uses: actions/checkout@v4
       with:
-        repository: 'xtls/xray-core'
+        repository: 'sun0537/Xray-core'
         path: 'xray-core'
 
     - name: Setup Java
