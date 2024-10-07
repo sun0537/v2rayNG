@@ -53,7 +53,7 @@ jobs:
     - name: Setup Go
       uses: actions/setup-go@v5
       with:
-        go-version: '1.23'  # 修改为具体的稳定版本
+        go-version: '1.22.4'  # 修改为具体的稳定版本
         cache: false
 
     - name: Install gomobile
