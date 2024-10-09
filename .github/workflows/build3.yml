@@ -1,6 +1,3 @@
-# build.yml forked from github.com/Fangliding/v2rayNG
-# thanks @Fangliding @nagi_ly
-
 name: Build APK
 
 on:
@@ -63,6 +60,9 @@ jobs:
 
     - name: Setup Android
       uses: android-actions/setup-android@v3
+      with:
+        api-level: 33  # 确保 API 级别与你的项目需求一致
+        build-tools: '33.0.2'  # 确保指定了 Build Tools 版本
 
     - name: Get xray short sha
       if: ${{ inputs.XRAY_VERSION == 'main' }}
@@ -78,7 +78,7 @@ jobs:
         gomobile init
         go clean -modcache
         go mod tidy -v
-        gomobile bind -v -androidapi 21 -ldflags='-s -w' ./
+        gomobile bind -v -androidapi 21 -ldflags='-s -w' ./ 
         cp libv2ray.aar ../V2rayNG/app/libs/
 
     - name: Build APK
@@ -100,7 +100,7 @@ jobs:
         keyPassword: ${{ env.KEYPASSWORD }}
         keyStorePassword: ${{ env.KEYSTOREPASSWORD }}
         signingKey: ${{ env.SIGNINGKEYBASE64 }}
-        buildToolsVersion: 33.0.2
+        buildToolsVersion: 33.0.2  # 确保使用正确的 Build Tools 版本
 
     - name: Upload APK files
       uses: actions/upload-artifact@v4
