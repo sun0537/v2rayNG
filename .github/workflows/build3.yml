@@ -50,7 +50,7 @@ jobs:
     - name: Setup Go
       uses: actions/setup-go@v5
       with:
-        go-version: '1.22.4'  # 修改为具体的稳定版本
+        go-version: '1.22.4'
         cache: false
 
     - name: Install gomobile
@@ -61,8 +61,16 @@ jobs:
     - name: Setup Android
       uses: android-actions/setup-android@v3
       with:
-        api-level: 33  # 确保 API 级别与你的项目需求一致
-        build-tools: '33.0.2'  # 确保指定了 Build Tools 版本
+        api-level: 33
+        build-tools: '33.0.2'
+
+    - name: Install Android SDK and Build Tools
+      run: |
+        yes | sdkmanager "platforms;android-33" "build-tools;33.0.2"
+
+    - name: List Android SDK tools
+      run: |
+        sdkmanager --list
 
     - name: Get xray short sha
       if: ${{ inputs.XRAY_VERSION == 'main' }}
@@ -100,7 +108,7 @@ jobs:
         keyPassword: ${{ env.KEYPASSWORD }}
         keyStorePassword: ${{ env.KEYSTOREPASSWORD }}
         signingKey: ${{ env.SIGNINGKEYBASE64 }}
-        buildToolsVersion: 33.0.2  # 确保使用正确的 Build Tools 版本
+        buildToolsVersion: 33.0.2
 
     - name: Upload APK files
       uses: actions/upload-artifact@v4
