@@ -64,7 +64,15 @@ jobs:
 
     - name: Setup Android
       uses: android-actions/setup-android@v3
+      
+    - name: Install Android SDK and Build Tools
+      run: |
+        yes | sdkmanager "platforms;android-33" "build-tools;33.0.2"
 
+    - name: List Android SDK tools
+      run: |
+        sdkmanager --list
+        
     - name: Get xray short sha
       run: | 
         cd xray-core
