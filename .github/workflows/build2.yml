@@ -45,7 +45,7 @@ jobs:
       uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
-        java-version: '17'
+        java-version: '21'
 
     - name: Get Go version
       run: |
@@ -54,24 +54,29 @@ jobs:
     - name: Setup Go
       uses: actions/setup-go@v5
       with:
-        go-version: '${{ env.GO_VERSION }}'
-        cache: false
-
+        go-version-file: 'go.mod'
+    - name: Patch Go use 600296
+      if: steps.cache-libv2ray-restore.outputs.cache-hit != 'true'
+      #https://go-review.googlesource.com/c/go/+/600296
+      run: |
+       cd "$(go env GOROOT)"
+       curl "https://go-review.googlesource.com/changes/go~600296/revisions/5/patch" | base64 -d | patch --verbose -p 1
+       
     - name: Install gomobile
       run: |
-        go install golang.org/x/mobile/cmd/gomobile@latest
-        echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
-
-    - name: Setup Android
-      uses: android-actions/setup-android@v3
-      
-    - name: Install Android SDK and Build Tools
-      run: |
-        yes | sdkmanager "platforms;android-33" "build-tools;33.0.2"
-
-    - name: List Android SDK tools
-      run: |
-        sdkmanager --list
+        go install github.com/sagernet/gomobile/cmd/gomobile@latest
+        export PATH=$PATH:~/go/bin
+        
+    - name: Setup Android SDK Tools
+      uses: android-actions/setup-android@v3.2.2
+      with:
+        cmdline-tools-version: 10406996
+        
+    - name: Setup Android NDK
+      uses: nttld/setup-ndk@v1.5.0
+      with:
+        ndk-version: 'r27b'
+        link-to-sdk: true
         
     - name: Get xray short sha
       run: | 
