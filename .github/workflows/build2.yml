@@ -107,8 +107,32 @@ jobs:
       run: |
         find V2rayNG/app/build/outputs/apk/ -type f -exec du -h {} \;
 
-    - name: Upload APK files
+    - name: Upload arm64-v8a APK
       uses: actions/upload-artifact@v4
+      if: ${{  success() }}
       with:
-        name: v2rayNG_arm64-v8a-signed
-        path: V2rayNG/app/build/outputs/apk/release/v2rayNG_*_arm64-v8a-signed.apk
+        name: arm64-v8a
+        path: V2rayNG/app/build/outputs/apk/*/release/*arm64-v8a*.apk
+
+    - name: Upload armeabi-v7a APK
+      uses: actions/upload-artifact@v4
+      if: ${{  success() }}
+      with:
+        name: armeabi-v7a
+        path: V2rayNG/app/build/outputs/apk/*/release/*armeabi-v7a*.apk
+
+    - name: Upload x86 APK
+      uses: actions/upload-artifact@v4
+      if: ${{  success() }}
+      with:
+        name: x86-apk
+        path: V2rayNG/app/build/outputs/apk/*/release/*x86*.apk
+
+    - name: Upload to release
+      uses: svenstaro/upload-release-action@v2
+      if: github.event.inputs.release_tag != ''
+      with:
+        file: V2rayNG/app/build/outputs/apk/*playstore*/release/*.apk
+        tag: ${{ github.event.inputs.release_tag }}
+        file_glob: true
+        prerelease: true
