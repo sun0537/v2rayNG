@@ -59,7 +59,7 @@ jobs:
         
     - name: Install gomobile
       run: |
-        go install github.com/sagernet/gomobile/cmd/gomobile@latest
+        CGO_ENABLED=0 go install -trimpath -ldflags="-w -s"  github.com/sagernet/gomobile/cmd/gomobile@latest
         export PATH=$PATH:~/go/bin
         
     - name: Setup Android SDK Tools
