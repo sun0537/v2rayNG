@@ -27,18 +27,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         repository: '2dust/v2rayNG'
-
-    - name: Checkout AndroidLibXrayLite repository
-      uses: actions/checkout@v4
-      with:
-        repository: '2dust/AndroidLibXrayLite'
-        path: 'AndroidLibXrayLite'
-
-    - name: Checkout Xray-core repository
-      uses: actions/checkout@v4
-      with:
-        repository: 'xtls/xray-core'
-        path: 'xray-core'
+        submodules: 'recursive'
         fetch-depth: '0'
 
     - name: Restore cached libtun2socks
@@ -143,17 +132,6 @@ jobs:
 
     - name: Setup Android environment
       uses: android-actions/setup-android@v3
-        
-    - name: Build dependencies
-      run: |
-        cd AndroidLibXrayLite
-        sed -i "s/v2core.Version())/v2core.Version() + \"@${{ env.XRAY_SHA }}\")/" libv2ray_main.go
-        go get github.com/xtls/xray-core@${{ env.XRAY_SHA }}
-        gomobile init
-        go mod tidy -v
-        gomobile bind -v -androidapi 21 -ldflags='-s -w' ./
-      env:
-        ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
 
     - name: Decode Keystore
       uses: timheuer/base64-to-file@v1
@@ -164,41 +142,41 @@ jobs:
         
     - name: Build APK
       run: |
-        cd V2rayNG
+        cd ${{ github.workspace }}/V2rayNG
         chmod 755 gradlew
         sed -i 's/org.gradle.jvmargs=-Xmx2048m -XX:MaxPermSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8/org.gradle.jvmargs=-Xmx2048m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8/' gradle.properties
         ./gradlew assembleRelease -Pandroid.injected.signing.store.file=${{ steps.android_keystore.outputs.filePath }} -Pandroid.injected.signing.store.password=${{ env.KEYSTOREPASSWORD }} -Pandroid.injected.signing.key.alias=${{ env.ALIAS }} -Pandroid.injected.signing.key.password=${{ env.KEYPASSWORD }}
 
     - name: List APK files
       run: |
-        find V2rayNG/app/build/outputs/apk/ -type f -exec du -h {} \;
+        find ${{ github.workspace }}/V2rayNG/app/build/outputs/apk/ -type f -exec du -h {} \;
 
     - name: Upload arm64-v8a APK
       uses: actions/upload-artifact@v4
       if: ${{  success() }}
       with:
         name: arm64-v8a
-        path: V2rayNG/app/build/outputs/apk/*/release/*arm64-v8a*.apk
+        path: ${{ github.workspace }}/V2rayNG/app/build/outputs/apk/*/release/*arm64-v8a*.apk
 
     - name: Upload armeabi-v7a APK
       uses: actions/upload-artifact@v4
       if: ${{  success() }}
       with:
         name: armeabi-v7a
-        path: V2rayNG/app/build/outputs/apk/*/release/*armeabi-v7a*.apk
+        path: ${{ github.workspace }}/V2rayNG/app/build/outputs/apk/*/release/*armeabi-v7a*.apk
 
     - name: Upload x86 APK
       uses: actions/upload-artifact@v4
       if: ${{  success() }}
       with:
         name: x86-apk
-        path: V2rayNG/app/build/outputs/apk/*/release/*x86*.apk
+        path: ${{ github.workspace }}/V2rayNG/app/build/outputs/apk/*/release/*x86*.apk
 
     - name: Upload to release
       uses: svenstaro/upload-release-action@v2
       if: github.event.inputs.release_tag != ''
       with:
-        file: V2rayNG/app/build/outputs/apk/*playstore*/release/*.apk
+        file: ${{ github.workspace }}/V2rayNG/app/build/outputs/apk/*playstore*/release/*.apk
         tag: ${{ github.event.inputs.release_tag }}
         file_glob: true
         prerelease: true
