@@ -59,7 +59,7 @@ jobs:
         
     - name: Install gomobile
       run: |
-        CGO_ENABLED=0 go install -trimpath -ldflags="-w -s"  github.com/sagernet/gomobile/cmd/gomobile@latest
+        CGO_ENABLED=0 go install -trimpath -ldflags="-w -s" github.com/sagernet/gomobile/cmd/gomobile@latest
         export PATH=$PATH:~/go/bin
         
     - name: Setup Android SDK Tools
@@ -68,10 +68,13 @@ jobs:
         cmdline-tools-version: 10406996
         
     - name: Setup Android NDK
-      uses: nttld/setup-ndk@v1.5.0
+      uses: nttld/setup-ndk@v1
+      id: setup-ndk
       with:
-        ndk-version: 'r27b'
+        ndk-version: r27
+        add-to-path: true
         link-to-sdk: true
+        local-cache: true
         
     - name: Get xray short sha
       run: | 
@@ -88,6 +91,8 @@ jobs:
         go mod tidy -v
         gomobile bind -v -androidapi 21 -ldflags='-s -w' ./
         cp libv2ray.aar ../V2rayNG/app/libs/
+      env:
+        ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
 
     - name: Decode Keystore
       uses: timheuer/base64-to-file@v1
