@@ -35,7 +35,7 @@ jobs:
       uses: actions/cache/restore@v4
       with:
         path: ${{ github.workspace }}/AndroidLibXrayLite/libs
-        key: libtun2socks-${{ runner.os }}-${{ hashFiles('.git/modules/AndroidLibXrayLite/modules/badvpn/HEAD') }}-${{ hashFiles('.git/modules/AndroidLibXrayLite/modules/libancillary/HEAD') }}
+        key: libtun2socks-${{ runner.os }}-${{ hashFiles('.git/modules/badvpn/refs/heads/main') }}-${{ hashFiles('.git/modules/libancillary/refs/heads/shadowsocks-android') }}
 
     - name: Setup Android NDK
       uses: nttld/setup-ndk@v1
@@ -56,27 +56,26 @@ jobs:
             ln -sf "$new_target" "$link"
             echo "Changed $(basename "$link") from $current_target to $new_target"
         done
-
+        
     - name: Build libtun2socks
       if: steps.cache-libtun2socks-restore.outputs.cache-hit != 'true'
       run: |
-        cd ${{ github.workspace }}/AndroidLibXrayLite
         bash compile-tun2socks.sh
         tar -xvzf libtun2socks.so.tgz
       env:
         NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
-
+       
     - name: Save libtun2socks
       if: steps.cache-libtun2socks-restore.outputs.cache-hit != 'true'
       uses: actions/cache/save@v4
       with:
-        path: ${{ github.workspace }}/AndroidLibXrayLite/libs
-        key: libtun2socks-${{ runner.os }}-${{ hashFiles('.git/modules/AndroidLibXrayLite/modules/badvpn/HEAD') }}-${{ hashFiles('.git/modules/AndroidLibXrayLite/modules/libancillary/HEAD') }}
+        path: ${{ github.workspace }}/libs
+        key: libtun2socks-${{ runner.os }}-${{ hashFiles('.git/modules/badvpn/refs/heads/main') }}-${{ hashFiles('.git/modules/libancillary/refs/heads/shadowsocks-android') }}
 
     - name: Copy libtun2socks
       run: |
-        cp -r ${{ github.workspace }}/AndroidLibXrayLite/libs ${{ github.workspace }}/V2rayNG/app
-
+        cp -r ${{ github.workspace }}/libs ${{ github.workspace }}/V2rayNG/app
+        
     - name: Fetch AndroidLibXrayLite tag
       run: |
         pushd AndroidLibXrayLite
@@ -84,7 +83,7 @@ jobs:
         echo "Current tag in this repo: $CURRENT_TAG"
         echo "CURRENT_TAG=$CURRENT_TAG" >> $GITHUB_ENV
         popd
-
+        
     - name: Download libv2ray
       uses: robinraju/release-downloader@v1
       with:
@@ -99,13 +98,13 @@ jobs:
       with:
         path: ${{ github.workspace }}/hysteria/libs
         key: libhysteria2-${{ runner.os }}-${{ hashFiles('.git/modules/hysteria/HEAD') }}-${{ hashFiles('libhysteria2.sh') }}
-
+        
     - name: Setup Golang
       if: steps.cache-libhysteria2-restore.outputs.cache-hit != 'true'
       uses: actions/setup-go@v5
       with:
-        go-mod-file: 'AndroidLibXrayLite/go.mod'
-
+        go-version-file: 'AndroidLibXrayLite/go.mod'
+        
     - name: Build libhysteria2
       if: steps.cache-libhysteria2-restore.outputs.cache-hit != 'true'
       run: |
