@@ -24,7 +24,7 @@ jobs:
 
     steps:
     - name: Checkout v2rayNG repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v4.2.2
       with:
         repository: '2dust/v2rayNG'
         submodules: 'recursive'
@@ -38,7 +38,7 @@ jobs:
         key: libtun2socks-${{ runner.os }}-${{ hashFiles('.git/modules/badvpn/refs/heads/main') }}-${{ hashFiles('.git/modules/libancillary/refs/heads/shadowsocks-android') }}
 
     - name: Setup Android NDK
-      uses: nttld/setup-ndk@v1
+      uses: android-actions/setup-android@v3.2.0
       id: setup-ndk
       # Same version as https://gitlab.com/fdroid/fdroiddata/metadata/com.v2ray.ang.yml
       with:
@@ -85,7 +85,7 @@ jobs:
         popd
         
     - name: Download libv2ray
-      uses: robinraju/release-downloader@v1
+      uses: robinraju/release-downloader@v1.12
       with:
         repository: '2dust/AndroidLibXrayLite'
         tag: ${{ env.CURRENT_TAG }}
@@ -101,7 +101,7 @@ jobs:
         
     - name: Setup Golang
       if: steps.cache-libhysteria2-restore.outputs.cache-hit != 'true'
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v5.4.0
       with:
         go-version-file: 'AndroidLibXrayLite/go.mod'
         
@@ -124,7 +124,7 @@ jobs:
         cp -r ${{ github.workspace }}/hysteria/libs ${{ github.workspace }}/V2rayNG/app
 
     - name: Setup Java
-      uses: actions/setup-java@v4
+      uses: actions/setup-java@v4.7.0
       with:
         distribution: 'temurin'
         java-version: '21'
@@ -133,7 +133,7 @@ jobs:
       uses: android-actions/setup-android@v3
 
     - name: Decode Keystore
-      uses: timheuer/base64-to-file@v1
+      uses: timheuer/base64-to-file@v1.2.4
       id: android_keystore
       with:
         fileName: "android_keystore.jks"
@@ -151,21 +151,21 @@ jobs:
         find ${{ github.workspace }}/V2rayNG/app/build/outputs/apk/ -type f -exec du -h {} \;
 
     - name: Upload arm64-v8a APK
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v4.6.2
       if: ${{  success() }}
       with:
         name: arm64-v8a
         path: ${{ github.workspace }}/V2rayNG/app/build/outputs/apk/*/release/*arm64-v8a*.apk
 
     - name: Upload armeabi-v7a APK
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v4.6.2
       if: ${{  success() }}
       with:
         name: armeabi-v7a
         path: ${{ github.workspace }}/V2rayNG/app/build/outputs/apk/*/release/*armeabi-v7a*.apk
 
     - name: Upload x86 APK
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v4.6.2
       if: ${{  success() }}
       with:
         name: x86-apk
