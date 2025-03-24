@@ -64,24 +64,19 @@ jobs:
             echo "Changed $(basename "$link") from $current_target to $new_target"
         done
         
-    - name: Build libtun2socks
-      if: steps.cache-libtun2socks-restore.outputs.cache-hit != 'true'
+    - name: Build libhysteria2
+      if: steps.cache-libhysteria2-restore.outputs.cache-hit != 'true'
       run: |
-        bash compile-tun2socks.sh
-        tar -xvzf libtun2socks.so.tgz
-      env:
-        NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
-       
-    - name: Save libtun2socks
-      if: steps.cache-libtun2socks-restore.outputs.cache-hit != 'true'
+        bash libhysteria2.sh
+    - name: Save libhysteria2
+      if: steps.cache-libhysteria2-restore.outputs.cache-hit != 'true'
       uses: actions/cache/save@v4
       with:
-        path: ${{ github.workspace }}/libs
-        key: libtun2socks-${{ runner.os }}-${{ hashFiles('.git/modules/badvpn/refs/heads/main') }}-${{ hashFiles('.git/modules/libancillary/refs/heads/shadowsocks-android') }}
-
-    - name: Copy libtun2socks
+        path: ${{ github.workspace }}/hysteria/libs
+        key: libhysteria2-${{ runner.os }}-${{ env.NDK_HOME }}-${{ hashFiles('.git/modules/hysteria/HEAD') }}-${{ hashFiles('libhysteria2.sh') }}
+    - name: Copy libhysteria2
       run: |
-        cp -r ${{ github.workspace }}/libs ${{ github.workspace }}/V2rayNG/app
+        cp -r ${{ github.workspace }}/hysteria/libs ${{ github.workspace }}/V2rayNG/app
         
     - name: Fetch AndroidLibXrayLite tag
       run: |
