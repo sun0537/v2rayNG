@@ -30,13 +30,6 @@ jobs:
         submodules: 'recursive'
         fetch-depth: '0'
 
-    - name: Restore cached libtun2socks
-      id: cache-libtun2socks-restore
-      uses: actions/cache/restore@v4
-      with:
-        path: ${{ github.workspace }}/AndroidLibXrayLite/libs
-        key: libtun2socks-${{ runner.os }}-${{ hashFiles('.git/modules/badvpn/refs/heads/main') }}-${{ hashFiles('.git/modules/libancillary/refs/heads/shadowsocks-android') }}
-
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3.2.0
       with:
@@ -64,19 +57,28 @@ jobs:
             echo "Changed $(basename "$link") from $current_target to $new_target"
         done
         
-    - name: Build libhysteria2
-      if: steps.cache-libhysteria2-restore.outputs.cache-hit != 'true'
+    - name: Restore cached libtun2socks
+      id: cache-libtun2socks-restore
+      uses: actions/cache/restore@v4
+      with:
+        path: ${{ github.workspace }}/libs
+        key: libtun2socks-${{ runner.os }}-${{ env.NDK_HOME }}-${{ hashFiles('.git/modules/badvpn/HEAD') }}-${{ hashFiles('.git/modules/libancillary/HEAD') }}
+
+    - name: Build libtun2socks
+      if: steps.cache-libtun2socks-restore.outputs.cache-hit != 'true'
       run: |
-        bash libhysteria2.sh
-    - name: Save libhysteria2
-      if: steps.cache-libhysteria2-restore.outputs.cache-hit != 'true'
+        bash compile-tun2socks.sh
+
+    - name: Save libtun2socks
+      if: steps.cache-libtun2socks-restore.outputs.cache-hit != 'true'
       uses: actions/cache/save@v4
       with:
-        path: ${{ github.workspace }}/hysteria/libs
-        key: libhysteria2-${{ runner.os }}-${{ env.NDK_HOME }}-${{ hashFiles('.git/modules/hysteria/HEAD') }}-${{ hashFiles('libhysteria2.sh') }}
-    - name: Copy libhysteria2
+        path: ${{ github.workspace }}/libs
+        key: libtun2socks-${{ runner.os }}-${{ env.NDK_HOME }}-${{ hashFiles('.git/modules/badvpn/HEAD') }}-${{ hashFiles('.git/modules/libancillary/HEAD') }}
+
+    - name: Copy libtun2socks
       run: |
-        cp -r ${{ github.workspace }}/hysteria/libs ${{ github.workspace }}/V2rayNG/app
+        cp -r ${{ github.workspace }}/libs ${{ github.workspace }}/V2rayNG/app
         
     - name: Fetch AndroidLibXrayLite tag
       run: |
