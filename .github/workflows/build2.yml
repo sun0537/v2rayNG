@@ -24,7 +24,7 @@ jobs:
 
     steps:
     - name: Checkout v2rayNG repository
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         repository: '2dust/v2rayNG'
         submodules: 'recursive'
@@ -97,7 +97,7 @@ jobs:
         out-file-path: V2rayNG/app/libs/
 
     - name: Setup Java
-      uses: actions/setup-java@v4.7.0
+      uses: actions/setup-java@v5
       with:
         distribution: 'temurin'
         java-version: '21'
@@ -124,21 +124,21 @@ jobs:
         find ${{ github.workspace }}/V2rayNG/app/build/outputs/apk/ -type f -exec du -h {} \;
 
     - name: Upload arm64-v8a APK
-      uses: actions/upload-artifact@v4.6.2
+      uses: actions/upload-artifact@v6
       if: ${{  success() }}
       with:
         name: arm64-v8a
         path: ${{ github.workspace }}/V2rayNG/app/build/outputs/apk/*/release/*arm64-v8a*.apk
 
     - name: Upload armeabi-v7a APK
-      uses: actions/upload-artifact@v4.6.2
+      uses: actions/upload-artifact@v6
       if: ${{  success() }}
       with:
         name: armeabi-v7a
         path: ${{ github.workspace }}/V2rayNG/app/build/outputs/apk/*/release/*armeabi-v7a*.apk
 
     - name: Upload x86 APK
-      uses: actions/upload-artifact@v4.6.2
+      uses: actions/upload-artifact@v6
       if: ${{  success() }}
       with:
         name: x86-apk
