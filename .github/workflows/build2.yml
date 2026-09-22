@@ -102,9 +102,6 @@ jobs:
         distribution: 'temurin'
         java-version: '21'
 
-    - name: Setup Android environment
-      uses: android-actions/setup-android@v3
-
     - name: Decode Keystore
       uses: timheuer/base64-to-file@v2.0.0
       id: android_keystore
